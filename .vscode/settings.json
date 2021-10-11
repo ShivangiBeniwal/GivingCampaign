@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/9b25ad11-f126-4a97-a4b5-0108e4cb7e97/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/GiveCampaignBot",
+    "appService.deploySubpath": "."
+}
