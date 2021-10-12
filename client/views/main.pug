@@ -1,0 +1,13 @@
+extends layout
+
+block scripts
+  script(src="/lib/client/scripts/main.js" type="module")
+
+block content
+  title Microsoft Teams Hello World Sample App
+  .surface.panel.font-semibold.font-title
+  | Hello, World
+
+  p Welcome to Microsoft Teams Hello World sample app (Node.js)
+  button#testbutton(type="button") Click Me!
+  #testdiv This is my DIV element.
