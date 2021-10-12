@@ -6,20 +6,20 @@ import { config } from 'dotenv';
 import * as path from 'path';
 import http from 'http';
 import createHttpError from 'http-errors';
-import * as cardHelper from './server/cardHelper.js';
-const __dirname = path.resolve();
+import * as cardHelper from './server/cardHelper';
 console.log("======="+__dirname)
 
 // // Import required bot services.
 // // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-import { BotFrameworkAdapter, CardFactory, WebRequest, WebResponse } from 'botbuilder';
+import { BotFrameworkAdapter, CardFactory, ConversationReference, MessageFactory, WebRequest, WebResponse } from 'botbuilder';
 
 // // This bot's main dialog.
-import { TeamsConversationBot, ConversationRef } from './server/teamsConversationBot.js';
+import { TeamsConversationBot, ConversationRef } from './server/teamsConversationBot';
 import express from 'express';
+import { INodeSocket } from 'botframework-streaming';
 
 // Read botFilePath and botFileSecret from .env file.
-const ENV_FILE = path.join(__dirname, '.env');
+const ENV_FILE = path.join(__dirname, '..', '.env');
 config({ path: ENV_FILE });
 
 // Create adapter.
@@ -74,24 +74,33 @@ app.post('/api/notify', async (req: { body: { message: any; }; },
         write: (arg0: string) => void;
         end: () => void; }) => {
     console.log("inside noti")
-    for (const conversationReference of Object.values(ConversationRef)) {
-        await adapter.continueConversation(conversationReference, async turnContext => {
-            await turnContext.sendActivity({ attachments: [CardFactory.adaptiveCard(cardHelper.getCardForMessage(req.body.message))] });
-        });
+    if (ConversationRef.size > 0) {
+      ConversationRef.forEach((value: Partial<ConversationReference>, key: string) => {
+        adapter.continueConversation(value, async turnContext => {
+          const card = CardFactory.adaptiveCard(cardHelper.getCardForMessage(req.body.message))
+          res.setHeader('Content-Type', 'application/json');
+          res.writeHead(200);
+          res.write("attachments:" + JSON.stringify(card));
+          res.end();
+            await turnContext.sendActivity(MessageFactory.attachment(card));
+          });
+      })
+      return
     }
+
     res.setHeader('Content-Type', 'text/html');
-    res.writeHead(200);
-    res.write('<html><body><h1>Proactive messages have been sent.</h1></body></html>');
+    res.writeHead(500);
+    res.write('<html><body><h1>ERROR : Proactive messages have not been sent as there are no ConversationReferences.</h1></body></html>');
     res.end();
 });
 
 // view engine setup
-app.set('views', path.join(__dirname, 'client/views'))
+app.set('views', path.join(__dirname, '..', 'client/views'))
 app.set('view engine', 'pug');
 
 // Setup home page
 app.get('/', (req: any, res: any) => {
-    console.log("---------"+ path.join(__dirname, 'client/views'))
+    console.log("---------"+ path.join(__dirname, '..', 'client/views'))
     res.render('main');
 });
 
@@ -131,7 +140,7 @@ app.use(function(err: { message: any; status: any; },
   * Listen on provided port, on all network interfaces.
   */
  server.listen(port, () => {
-//    console.log( `\n${ server.name } listening to ${ server.url }` );
+  console.log(`\n${JSON.stringify(server)} listening to ${server.address}`);
    console.log( '\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator' );
    console.log( '\nTo talk to your bot, open the emulator select "Open Bot"' );
  });
@@ -146,11 +155,11 @@ app.use(function(err: { message: any; status: any; },
    // Set onTurnError for the BotFrameworkAdapter created for each connection.
    streamingAdapter.onTurnError = onTurnErrorHandler;
 
-//    streamingAdapter.useWebSocket(req, socket, head, async (context) => {
-//        // After connecting via WebSocket, run this logic for every request sent over
-//        // the WebSocket connection.
-//        await bot.run( context );
-//    } );
+   streamingAdapter.useWebSocket(req, socket as unknown as INodeSocket, head, async (context) => {
+       // After connecting via WebSocket, run this logic for every request sent over
+       // the WebSocket connection.
+       await bot.run( context );
+   } );
  } );
 
  /**

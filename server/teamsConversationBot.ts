@@ -25,6 +25,11 @@ export class TeamsConversationBot extends TeamsActivityHandler {
     constructor() {
         super();
         this.onMessage( async ( context: TurnContext, next ): Promise<void> => {
+                                    // Calling method to set conversation reference.
+                                    this.addConversationReference(context.activity);
+
+                                    // Calling method to set conversation data reference that has roster information.
+                                    this.addConversationDataReference(context);
             TurnContext.removeRecipientMention( context.activity );
             const text = context.activity.text.trim().toLocaleLowerCase();
             if ( text.includes( 'mention' ) ) {
@@ -42,6 +47,16 @@ export class TeamsConversationBot extends TeamsActivityHandler {
             }
             await next();
         } );
+
+        this.onConversationUpdate(async (context, next) => {
+            this.addConversationReference(context.activity);
+
+
+                        // Calling method to set conversation data reference that has roster information.
+                        this.addConversationDataReference(context);
+
+            await next();
+        });
 
         this.onTeamsMembersAddedEvent( async ( membersAdded: ChannelAccount[], teamInfo: TeamInfo, context: TurnContext, next: () => Promise<void> ): Promise<void> => {
             // let newMembers: string = '';
@@ -118,7 +133,7 @@ export class TeamsConversationBot extends TeamsActivityHandler {
         const card = CardFactory.heroCard(
             'Updated card',
             `Update count: ${ data.count }`,
-            [''],
+            undefined,
             cardActions
         );
         // card.id = context.activity.replyToId;
@@ -140,7 +155,7 @@ export class TeamsConversationBot extends TeamsActivityHandler {
         const card = CardFactory.heroCard(
             'Welcome card',
             '',
-            [''],
+            undefined,
             cardActions
         );
         await context.sendActivity( MessageFactory.attachment( card ) );

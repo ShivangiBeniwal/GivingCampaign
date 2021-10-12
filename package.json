@@ -5,7 +5,6 @@
   "repository": "git@github.com:ShivangiBeniwal/GivingCampaign.git",
   "author": "Shivangi Beniwal",
   "license": "MIT",
-  "type": "module",
   "private": true,
   "dependencies": {
     "@microsoft/teams-js": "^1.10.0",
@@ -33,6 +32,7 @@
   },
   "scripts": {
     "build": "tsc && webpack --mode production",
-    "start": "nodemon ./lib/index.js"
+    "start": "nodemon ./lib/index.js",
+    "postinstall": "npm run build && node ./deploymentScripts/webConfigPrep.cjs"
   }
 }
