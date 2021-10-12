@@ -17,6 +17,7 @@ import { BotFrameworkAdapter, CardFactory, ConversationReference, MessageFactory
 import { TeamsConversationBot, ConversationRef } from './server/teamsConversationBot';
 import express from 'express';
 import { INodeSocket } from 'botframework-streaming';
+import { stringify } from 'querystring';
 
 // Read botFilePath and botFileSecret from .env file.
 const ENV_FILE = path.join(__dirname, '..', '.env');
@@ -68,29 +69,30 @@ app.post('/api/messages', (req: WebRequest, res: WebResponse) => {
     });
 });
 
-app.post('/api/notify', async (req: { body: { message: any; }; },
+app.post('/api/notify', async (req: { body: { key: string, message: string }; },
     res: { setHeader: (arg0: string, arg1: string) => void;
         writeHead: (arg0: number) => void;
         write: (arg0: string) => void;
         end: () => void; }) => {
-    console.log("inside noti")
-    if (ConversationRef.size > 0) {
-      ConversationRef.forEach((value: Partial<ConversationReference>, key: string) => {
-        adapter.continueConversation(value, async turnContext => {
-          const card = CardFactory.adaptiveCard(cardHelper.getCardForMessage(req.body.message))
-          res.setHeader('Content-Type', 'application/json');
-          res.writeHead(200);
-          res.write("attachments:" + JSON.stringify(card));
-          res.end();
-            await turnContext.sendActivity(MessageFactory.attachment(card));
-          });
-      })
+    if (ConversationRef.has(req.body.key)) {
+      await adapter.continueConversation(ConversationRef.get(req.body.key), async turnContext => {
+        const card = CardFactory.adaptiveCard(cardHelper.getCardForMessage(req.body.message))
+        res.setHeader('Content-Type', 'application/json');
+        res.writeHead(200);
+        res.write("attachments:" + JSON.stringify(card));
+        res.end();
+          await turnContext.sendActivity(MessageFactory.attachment(card));
+        });
       return
     }
 
+    var error = "Error : " + ConversationRef.size + ", " + req.body.key +"\n"
+    ConversationRef.forEach((value:Partial<ConversationReference>, key: string) => {
+      error += "---" + key + "=" + value + (req.body.key === key) +"\n"
+    })
     res.setHeader('Content-Type', 'text/html');
     res.writeHead(500);
-    res.write('<html><body><h1>ERROR : Proactive messages have not been sent as there are no ConversationReferences.</h1></body></html>');
+    res.write('<html><body><h1>ERROR : '+ error+'Proactive messages have not been sent because no matching user found in ConversationReferences.</h1></body></html>');
     res.end();
 });
 
@@ -140,7 +142,7 @@ app.use(function(err: { message: any; status: any; },
   * Listen on provided port, on all network interfaces.
   */
  server.listen(port, () => {
-  console.log(`\n${JSON.stringify(server)} listening to ${server.address}`);
+  // console.log(`\n${server.name} listening to ${server.url}`);
    console.log( '\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator' );
    console.log( '\nTo talk to your bot, open the emulator select "Open Bot"' );
  });

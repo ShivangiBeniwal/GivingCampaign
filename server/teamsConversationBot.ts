@@ -26,7 +26,7 @@ export class TeamsConversationBot extends TeamsActivityHandler {
         super();
         this.onMessage( async ( context: TurnContext, next ): Promise<void> => {
                                     // Calling method to set conversation reference.
-                                    this.addConversationReference(context.activity);
+                                    this.addConversationReference(context);
 
                                     // Calling method to set conversation data reference that has roster information.
                                     this.addConversationDataReference(context);
@@ -49,7 +49,7 @@ export class TeamsConversationBot extends TeamsActivityHandler {
         } );
 
         this.onConversationUpdate(async (context, next) => {
-            this.addConversationReference(context.activity);
+            this.addConversationReference(context);
 
 
                         // Calling method to set conversation data reference that has roster information.
@@ -69,7 +69,7 @@ export class TeamsConversationBot extends TeamsActivityHandler {
             // await context.sendActivity( message );
 
                         // Calling method to set conversation reference.
-                        this.addConversationReference(context.activity);
+                        this.addConversationReference(context);
 
                         // Calling method to set conversation data reference that has roster information.
                         this.addConversationDataReference(context);
@@ -80,10 +80,11 @@ export class TeamsConversationBot extends TeamsActivityHandler {
     }
 
         // Method to set conversation reference.
-        addConversationReference(activity: Partial<Activity>) {
-            const conversationReference: Partial<ConversationReference> = TurnContext.getConversationReference(activity);
+        async addConversationReference(context: TurnContext) {
+            const conversationReference: Partial<ConversationReference> = TurnContext.getConversationReference(context.activity);
             if (conversationReference.conversation?.id === undefined) return
-            ConversationRef.set(conversationReference.conversation.id, conversationReference)
+            const user: TeamsChannelAccount = await TeamsInfo.getMember(context, context.activity.from.id)
+            ConversationRef.set(user.userPrincipalName, conversationReference)
         }
 
         // Method to set conversation data reference that has roster information.
@@ -174,7 +175,7 @@ export class TeamsConversationBot extends TeamsActivityHandler {
                 throw e;
             }
         }
-        const message = MessageFactory.text( `You are: ${ member.name }` );
+        const message = MessageFactory.text( `You are: ${ member.name } ${member.userPrincipalName}` );
         await context.sendActivity( message );
     }
 
