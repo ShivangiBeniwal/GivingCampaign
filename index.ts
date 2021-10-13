@@ -7,6 +7,9 @@ import * as path from 'path';
 import http from 'http';
 import createHttpError from 'http-errors';
 import * as cardHelper from './server/cardHelper';
+import * as Config from "./server/config/default";
+import dbConnect from "./server/utils/connect";
+import routes from "./server/routes";
 console.log("======="+__dirname)
 
 // // Import required bot services.
@@ -100,11 +103,9 @@ app.post('/api/notify', async (req: { body: { key: string, message: string }; },
 app.set('views', path.join(__dirname, '..', 'client/views'))
 app.set('view engine', 'pug');
 
-// Setup home page
-app.get('/', (req: any, res: any) => {
-    console.log("---------"+ path.join(__dirname, '..', 'client/views'))
-    res.render('main');
-});
+app.use('/static', express.static(path.join(__dirname, '..', 'client/')))
+//setup other routes
+routes(app);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -130,7 +131,7 @@ app.use(function(err: { message: any; status: any; },
 /**
  * Get port from environment and store in Express.
  */
- var port = normalizePort(process.env.port || process.env.PORT || '3978');
+ var port = normalizePort(process.env.port || process.env.PORT || Config.io.port);
  app.set('port', port);
 
  /**
@@ -142,9 +143,10 @@ app.use(function(err: { message: any; status: any; },
   * Listen on provided port, on all network interfaces.
   */
  server.listen(port, () => {
-  // console.log(`\n${server.name} listening to ${server.url}`);
+  console.log(`App is running at ${port}`);
    console.log( '\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator' );
    console.log( '\nTo talk to your bot, open the emulator select "Open Bot"' );
+   dbConnect();
  });
 
  // Listen for Upgrade requests for Streaming.

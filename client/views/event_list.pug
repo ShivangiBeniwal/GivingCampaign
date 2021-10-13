@@ -1,0 +1,7 @@
+extends layout
+
+block content
+		h1 List of Events:
+		each card in cards
+			a(href="/cards/" + card.id) #{card.name}
+			br
