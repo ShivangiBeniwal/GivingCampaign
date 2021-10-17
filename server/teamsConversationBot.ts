@@ -3,7 +3,6 @@
 
 import {
     ActionTypes,
-    Activity,
     BotFrameworkAdapter,
     CardAction,
     CardFactory,
@@ -23,13 +22,9 @@ export const ConversationDataRef = new Map();
 
 export class TeamsConversationBot extends TeamsActivityHandler {
     constructor() {
-        super();
-        this.onMessage( async ( context: TurnContext, next ): Promise<void> => {
-                                    // Calling method to set conversation reference.
-                                    this.addConversationReference(context);
+        super()
 
-                                    // Calling method to set conversation data reference that has roster information.
-                                    this.addConversationDataReference(context);
+        this.onMessage(async ( context: TurnContext, next ): Promise<void> => {
             TurnContext.removeRecipientMention( context.activity );
             const text = context.activity.text.trim().toLocaleLowerCase();
             if ( text.includes( 'mention' ) ) {
@@ -46,52 +41,46 @@ export class TeamsConversationBot extends TeamsActivityHandler {
                 await this.cardActivityAsync( context, false );
             }
             await next();
-        } );
+        })
+
+        this.onInstallationUpdate(async (context, next) => {
+            this.addConversationReference(context);
+            await next();
+        })
 
         this.onConversationUpdate(async (context, next) => {
             this.addConversationReference(context);
-
-
-                        // Calling method to set conversation data reference that has roster information.
-                        this.addConversationDataReference(context);
-
             await next();
-        });
+        })
 
-        this.onTeamsMembersAddedEvent( async ( membersAdded: ChannelAccount[], teamInfo: TeamInfo, context: TurnContext, next: () => Promise<void> ): Promise<void> => {
-            // let newMembers: string = '';
-            // membersAdded.forEach( ( account ) => {
-            //     newMembers += account.id + ' ';
-            // } );
-            // const name = !teamInfo ? 'not in team' : teamInfo.name;
-            // const card = CardFactory.heroCard( 'Account Added', `${ newMembers } joined ${ name }.` );
-            // const message = MessageFactory.attachment( card );
-            // await context.sendActivity( message );
+        this.onTeamsMembersAddedEvent(async (membersAdded: ChannelAccount[],
+            teamInfo: TeamInfo,
+            context: TurnContext,
+            next: () => Promise<void>): Promise<void> => {
+            // Calling method to set conversation reference.
+            this.addConversationReference(context);
 
-                        // Calling method to set conversation reference.
-                        this.addConversationReference(context);
-
-                        // Calling method to set conversation data reference that has roster information.
-                        this.addConversationDataReference(context);
-
-            await this.cardActivityAsync( context, false );
+            await this.cardActivityAsync(context, false);
             await next();
         } );
     }
 
-        // Method to set conversation reference.
-        async addConversationReference(context: TurnContext) {
-            const conversationReference: Partial<ConversationReference> = TurnContext.getConversationReference(context.activity);
-            if (conversationReference.conversation?.id === undefined) return
-            const user: TeamsChannelAccount = await TeamsInfo.getMember(context, context.activity.from.id)
-            ConversationRef.set(user.userPrincipalName, conversationReference)
-        }
+    // Method to set conversation reference.
+    async addConversationReference(context: TurnContext) {
+        const conversationReference: Partial<ConversationReference> = TurnContext.getConversationReference(context.activity);
+        if (conversationReference.conversation?.id === undefined) return
+        const user: TeamsChannelAccount = await TeamsInfo.getMember(context, context.activity.from.id)
+        ConversationRef.set(user.userPrincipalName, conversationReference)
 
-        // Method to set conversation data reference that has roster information.
-        async addConversationDataReference(context: TurnContext) {
-            const members: TeamsChannelAccount[] = await TeamsInfo.getMembers(context);
-            ConversationDataRef.set("members", members);
-        }
+        // Calling method to set conversation data reference that has roster information.
+        this.addConversationDataReference(context);
+    }
+
+    // Method to set conversation data reference that has roster information.
+    async addConversationDataReference(context: TurnContext) {
+        const members: TeamsChannelAccount[] = await TeamsInfo.getMembers(context);
+        ConversationDataRef.set("members", members);
+    }
 
     public async cardActivityAsync( context: TurnContext, isUpdate: boolean ): Promise<void> {
         const cardActions = [

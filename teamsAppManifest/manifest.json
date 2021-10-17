@@ -72,5 +72,11 @@
     "identity",
     "messageTeamMembers"
   ],
-  "validDomains": []
+  "validDomains": [
+    "token.botframework.com"
+  ],
+  "webApplicationInfo": {
+    "id": "d7bcad51-8547-4a8b-abe3-ba88b00ed740",
+    "resource": "api://givecampaignbot.azurewebsites.net/botid-d7bcad51-8547-4a8b-abe3-ba88b00ed740"
+  }
 }

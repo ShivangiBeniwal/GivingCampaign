@@ -4,7 +4,12 @@ import * as axios from 'axios';
 var currentUpn: string = "null"
 
 function initialize() {
-  console.log("cliked");
+    console.log("cliked");
+    var abtn = document.getElementById("authbutton") as HTMLButtonElement
+    abtn.onclick = () => {
+       getAuthToken()
+    }
+
   var btn = document.getElementById("testbutton") as HTMLButtonElement
   btn.onclick = () => {
       console.log("cyan" + currentUpn)
@@ -18,6 +23,20 @@ function initialize() {
       }
   }
 }
+
+function getAuthToken() {
+    var authTokenRequest = {
+      successCallback: (result: string) => {
+        console.log("Token received: " + result)
+      },
+      failureCallback: function(error: string) {
+        console.log("Error getting token: " + error)
+      }
+    }
+
+    console.log("Get Auth Token Call is made.")
+    microsoftTeams.authentication.getAuthToken(authTokenRequest)
+  }
 
 // // API call to share assets and notes.
 function notify(requestBody: any) {

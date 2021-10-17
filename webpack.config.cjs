@@ -1,10 +1,9 @@
 const path = require('path');
 const fs = require( 'fs' );
 
-function fetchClientFiles() {
+function fetchClientFiles(folder) {
     var entries = new Array();
     try {
-        const folder = './client/scripts';
         const files = fs.readdirSync(folder);
 
         // files object contains all files names
@@ -20,7 +19,7 @@ function fetchClientFiles() {
 }
 
 module.exports = {
-    entry: fetchClientFiles(),
+    entry: fetchClientFiles('./client/scripts'),
     devtool: 'inline-source-map',
     module: {
         rules: [{

@@ -11,13 +11,15 @@ console.log("======="+__dirname)
 
 // // Import required bot services.
 // // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-import { BotFrameworkAdapter, CardFactory, ConversationReference, MessageFactory, WebRequest, WebResponse } from 'botbuilder';
+import { BotFrameworkAdapter, CardFactory, ConversationReference, ConversationState, MemoryStorage, MessageFactory, UserState, WebRequest, WebResponse } from 'botbuilder';
 
 // // This bot's main dialog.
 import { TeamsConversationBot, ConversationRef } from './server/teamsConversationBot';
 import express from 'express';
 import { INodeSocket } from 'botframework-streaming';
-import { stringify } from 'querystring';
+import { TeamsBot } from './server/bots/teamsBot';
+import { MainDialog } from './server/dialogs/mainDialog';
+import { SsoOAuthHelpler } from './server/ssoOauthHelpler';
 
 // Read botFilePath and botFileSecret from .env file.
 const ENV_FILE = path.join(__dirname, '..', '.env');
@@ -53,7 +55,21 @@ const onTurnErrorHandler = async ( context: { sendTraceActivity: (arg0: string, 
 // Set the onTurnError for the singleton BotFrameworkAdapter.
 adapter.onTurnError = onTurnErrorHandler;
 
-// Create the bot that will handle incoming messages.
+// Define the state store for your bot.
+// See https://aka.ms/about-bot-state to learn more about using MemoryStorage.
+// A bot requires a state storage system to persist the dialog and user state between messages.
+// const memoryStorage = new MemoryStorage();
+
+// // Create conversation and user state with in-memory storage provider.
+// const conversationState = new ConversationState(memoryStorage);
+// const userState = new UserState(memoryStorage);
+
+// // Create the main dialog.
+// const dialog = new MainDialog();
+// // Create the main dialog.
+// const ssoOAuthHelper = new SsoOAuthHelpler(process.env.ConnectionName, memoryStorage);
+// // Create the bot that will handle incoming messages.
+// const bot = new TeamsBot(ssoOAuthHelper, conversationState, userState, dialog)
 const bot = new TeamsConversationBot();
 
 // Create HTTP server.
@@ -92,7 +108,7 @@ app.post('/api/notify', async (req: { body: { key: string, message: string }; },
     })
     res.setHeader('Content-Type', 'text/html');
     res.writeHead(500);
-    res.write('<html><body><h1>ERROR : '+ error+'Proactive messages have not been sent because no matching user found in ConversationReferences.</h1></body></html>');
+    res.write('<html><body><h1>ERROR : '+ error+'Proactive message have not been sent because no matching user found in ConversationReferences.</h1></body></html>');
     res.end();
 });
 

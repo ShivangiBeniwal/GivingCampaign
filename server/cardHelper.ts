@@ -22,3 +22,23 @@ export const getCardForMessage = (message: any) => ({
         type: 'AdaptiveCard',
         version: '1.4'
     });
+
+export const signedOutCard = () => ({
+        version: '1.0.0',
+        type: 'AdaptiveCard',
+        body: [
+            {
+                type: 'TextBlock',
+                text: 'You have been signed out.'
+            }
+        ],
+        actions: [
+            {
+                type: 'Action.Submit',
+                title: 'Close',
+                data: {
+                    key: 'close'
+                }
+            }
+        ]
+    });
