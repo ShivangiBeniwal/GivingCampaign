@@ -11,23 +11,23 @@
     "termsOfUseUrl": "https://www.microsoft.com/en-us/legal/intellectualproperty/copyright/default.aspx"
   },
   "icons": {
-    "outline": "icon-outline.png",
-    "color": "icon-color.png"
+    "outline": "icon-outline.jpg",
+    "color": "icon-color.jpg"
   },
   "name": {
-    "short": "Teams Conversation Bot",
-    "full": "Teams Conversation Bot"
+    "short": "MS Give",
+    "full": "MS Giving Campaign"
   },
   "description": {
-    "short": "Sample demonstrating a Teams Conversation Bot",
-    "full": "Sample the Teams Conversation Bot built with the Bot Builder SDK"
+    "short": "Sample demonstrating a MS Giving Campaign App",
+    "full": "Sample demonstrating a MS Giving Campaign App powered by Bot"
   },
   "accentColor": "#FFFFFF",
   "staticTabs": [
     {
-      "contentUrl": "https://givecampaignbot.azurewebsites.net/",
-      "entityId": "statictab",
-      "name": "Static Tab + Bot Info",
+      "contentUrl": "https://givecampaignbot.azurewebsites.net/feeds_before",
+      "entityId": "home",
+      "name": "Home",
       "scopes": [
         "personal"
       ]
@@ -52,16 +52,16 @@
           ],
           "commands": [
             {
-              "title": "MentionMe",
-              "description": "Sends message with @mention of the sender"
+              "title": "Show me org participation",
+              "description": "Sends your org participation details"
             },
             {
-              "title": "Show Welcome",
-              "description": "Shows the welcome card"
+              "title": "Details about educational events",
+              "description": "Shows all the fundraising events under the category of EDUCATION"
             },
             {
-              "title": "MessageAllMembers",
-              "description": "Send 1 to 1 message to all members of the current conversation"
+              "title": "Show me highlights",
+              "description": "Sends you top upcoming events of current week"
             }
           ]
         }

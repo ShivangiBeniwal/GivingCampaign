@@ -3,24 +3,48 @@ import * as axios from 'axios';
 
 var currentUpn: string = "null"
 
-function initialize() {
-    console.log("cliked");
-    var abtn = document.getElementById("authbutton") as HTMLButtonElement
-    abtn.onclick = () => {
-       getAuthToken()
-    }
 
-  var btn = document.getElementById("testbutton") as HTMLButtonElement
-  btn.onclick = () => {
-      console.log("cyan" + currentUpn)
-      notify({key : currentUpn, message : 'HI I AM NOTIFICATION'})
-      var x = document.getElementById("testdiv") as HTMLDivElement
-      if (x.style.display === "none") {
-        x.style.display = "block";
-        console.log("yellow")
-      } else {
-        x.style.display = "none";
-      }
+const notifyItem = {
+    id: "notify",
+    title: "Notify",
+    icon: null,
+    viewData: null,
+    enabled: true,
+    selected: false
+}
+
+function initialize() {
+//     console.log("cliked");
+//     var abtn = document.getElementById("authbutton") as HTMLButtonElement
+//     if (abtn) {
+//         abtn.onclick = () => {
+//             getAuthToken()
+//          }
+//     }
+
+//   var btn = document.getElementById("testbutton") as HTMLButtonElement
+//     if (btn) {
+//         btn.onclick = () => {
+//             console.log("cyan" + currentUpn)
+//             notify({ key: currentUpn, message: 'HI I AM NOTIFICATION' })
+//             var x = document.getElementById("testdiv") as HTMLDivElement
+//             if (x.style.display === "none") {
+//                 x.style.display = "block";
+//                 console.log("yellow")
+//             } else {
+//                 x.style.display = "none";
+//             }
+//         }
+//   }
+
+  console.log("before snackbar");
+  showSnackBar();
+  console.log("after snackbar");
+  var sideNav = document.getElementById("mySidenav") as HTMLDivElement
+  if (!sideNav) return
+  sideNav.onclick = () => {
+      console.log("I am clicke");
+      notify("")
   }
 }
 
@@ -43,12 +67,38 @@ function notify(requestBody: any) {
     return axios.default.post(`${window.location.origin}/api/notify`, requestBody);
 }
 
-window.onload = function() {
+// Call the initialize API first
+microsoftTeams.initialize();
+
+window.onload = function () {
+
     initialize();
+
+    microsoftTeams.menus.setNavBarMenu([notifyItem as unknown as microsoftTeams.menus.MenuItem], (id: string) => {
+        if (id === "notify") {
+            notify("")
+        }
+        return true;
+      })
+
 }
 
-    // Call the initialize API first
-    microsoftTeams.initialize();
+function showSnackBar() {
+    var x = document.getElementById("msteams-snackbar") as HTMLDivElement
+    if (!x) return
+    x.className = "show";
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+ }
+
+// Used to toggle the menu on smaller screens when clicking on the menu button
+    function openNav() {
+      var x = document.getElementById("navDemo") as HTMLDivElement
+      if (x.className.indexOf("w3-show") == -1) {
+        x.className += " w3-show";
+      } else {
+        x.className = x.className.replace(" w3-show", "");
+      }
+    }
 
     // Check the initial theme user chose and respect it
     microsoftTeams.getContext(function (context: microsoftTeams.Context) {

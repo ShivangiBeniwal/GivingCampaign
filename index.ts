@@ -7,6 +7,9 @@ import * as path from 'path';
 import http from 'http';
 import createHttpError from 'http-errors';
 import * as cardHelper from './server/cardHelper';
+import * as Config from "./server/config/default";
+import dbConnect from "./server/utils/connect";
+import routes from "./server/routes";
 console.log("======="+__dirname)
 
 // // Import required bot services.
@@ -14,7 +17,7 @@ console.log("======="+__dirname)
 import { BotFrameworkAdapter, CardFactory, ConversationReference, ConversationState, MemoryStorage, MessageFactory, UserState, WebRequest, WebResponse } from 'botbuilder';
 
 // // This bot's main dialog.
-import { TeamsConversationBot, ConversationRef } from './server/teamsConversationBot';
+import { GivingBot, ConversationRef } from './server/givingBot';
 import express from 'express';
 import { INodeSocket } from 'botframework-streaming';
 import { TeamsBot } from './server/bots/teamsBot';
@@ -70,7 +73,7 @@ adapter.onTurnError = onTurnErrorHandler;
 // const ssoOAuthHelper = new SsoOAuthHelpler(process.env.ConnectionName, memoryStorage);
 // // Create the bot that will handle incoming messages.
 // const bot = new TeamsBot(ssoOAuthHelper, conversationState, userState, dialog)
-const bot = new TeamsConversationBot();
+const bot = new GivingBot();
 
 // Create HTTP server.
 const app = express();
@@ -90,37 +93,40 @@ app.post('/api/notify', async (req: { body: { key: string, message: string }; },
         writeHead: (arg0: number) => void;
         write: (arg0: string) => void;
         end: () => void; }) => {
-    if (ConversationRef.has(req.body.key)) {
-      await adapter.continueConversation(ConversationRef.get(req.body.key), async turnContext => {
-        const card = CardFactory.adaptiveCard(cardHelper.getCardForMessage(req.body.message))
-        res.setHeader('Content-Type', 'application/json');
-        res.writeHead(200);
-        res.write("attachments:" + JSON.stringify(card));
-        res.end();
-          await turnContext.sendActivity(MessageFactory.attachment(card));
-        });
-      return
-    }
+    // if (ConversationRef.has(req.body.key)) {
 
-    var error = "Error : " + ConversationRef.size + ", " + req.body.key +"\n"
-    ConversationRef.forEach((value:Partial<ConversationReference>, key: string) => {
-      error += "---" + key + "=" + value + (req.body.key === key) +"\n"
-    })
-    res.setHeader('Content-Type', 'text/html');
-    res.writeHead(500);
-    res.write('<html><body><h1>ERROR : '+ error+'Proactive message have not been sent because no matching user found in ConversationReferences.</h1></body></html>');
-    res.end();
+      ConversationRef.forEach((value: Partial<ConversationReference>, key: string) => {
+        adapter.continueConversation(value, async turnContext => {
+          const card = CardFactory.adaptiveCard(cardHelper.newsLetterCard());
+          res.setHeader('Content-Type', 'application/json');
+          res.writeHead(200);
+          res.write("attachments:" + JSON.stringify(card));
+          res.end();
+            await turnContext.sendActivity(MessageFactory.attachment(card));
+          });
+    });
+      // return
+    // }
+
+  //   var error = ConversationRef.size + ", " + req.body.key +"\n"
+  //   ConversationRef.forEach((value:Partial<ConversationReference>, key: string) => {
+  //     error += "---" + key + "=" + value + (req.body.key === key) +"\n"
+  //   })
+  //   res.setHeader('Content-Type', 'text/html');
+  //   res.writeHead(500);
+  // res.write('<html><body><h1>'
+  //   + 'ERROR : Proactive message have not been sent because no matching user found in ConversationReferences.<br>'
+  //   + error + '</h1></body></html>');
+  //   res.end();
 });
 
 // view engine setup
 app.set('views', path.join(__dirname, '..', 'client/views'))
 app.set('view engine', 'pug');
 
-// Setup home page
-app.get('/', (req: any, res: any) => {
-    console.log("---------"+ path.join(__dirname, '..', 'client/views'))
-    res.render('main');
-});
+app.use('/static', express.static(path.join(__dirname, '..', 'client/')))
+//setup other routes
+routes(app);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -146,7 +152,7 @@ app.use(function(err: { message: any; status: any; },
 /**
  * Get port from environment and store in Express.
  */
- var port = normalizePort(process.env.port || process.env.PORT || '3978');
+ var port = normalizePort(process.env.port || process.env.PORT || Config.io.port);
  app.set('port', port);
 
  /**
@@ -158,9 +164,10 @@ app.use(function(err: { message: any; status: any; },
   * Listen on provided port, on all network interfaces.
   */
  server.listen(port, () => {
-  // console.log(`\n${server.name} listening to ${server.url}`);
+  console.log(`App is running at ${port}`);
    console.log( '\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator' );
    console.log( '\nTo talk to your bot, open the emulator select "Open Bot"' );
+  //  dbConnect();
  });
 
  // Listen for Upgrade requests for Streaming.

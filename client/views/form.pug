@@ -1,0 +1,29 @@
+extends layout
+
+block scripts
+  link(rel='stylesheet', href='static/styles/custom.css')
+
+block content
+  img(src="https://givecampaignbot.azurewebsites.net/file?name=banner.jpg", style="width:100%")
+  h3.w3-margin  Enter your Give Campaign details
+  form.w3-margin(action='/feeds_after', method='GET')
+    p
+      | Event Name: 
+      input(type='text', name='name', value='Chess' required)
+      | Description: 
+      input(type='text', name='desc', value='Description' required)
+      | Shout-out: 
+      input(type='text', name='shoutout', value='Fun Event' required)
+      | Start date: 
+      input(type='date', name='startdate', value='2021-10-13' required)
+      | End date: 
+      input(type='date', name='enddate', value='2021-12-16' required)
+      | Promoter Name: 
+      input(type='text', name='promoter', value='Prakash' required)
+      | Promoter Email: 
+      input(type='Email', name='email', value='prakashraman@microsoft.com' required)
+      | Event url: 
+      input(type='text', name='eventurl', value='https://microsoftindia.benevity.org/campaigns/790' required)
+      | Event id: 
+      input(type='text', name='eventid', value='790' required)
+    input(type='submit', value='Submit')
